@@ -1,0 +1,54 @@
+# Configuration sensible
+config_local.php
+
+# Logs
+*.log
+error_log
+
+# Uploads et fichiers temporaires
+admin-dashboard/uploads/*
+!admin-dashboard/uploads/.gitkeep
+temp/
+tmp/
+
+# Cache
+cache/
+*.cache
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# Environnement local
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Netlify (ne pas utiliser)
+.netlify/
+netlify.toml
+_redirects
+_headers
+
+# Node modules si jamais utilisés
+node_modules/
+package-lock.json
+
+# Archives
+*.zip
+*.rar
+*.tar.gz
+
+# Sauvegardes
+backup/
+*.bak
+*.backup
+
+# Fichiers de test
+test.php
+debug.php

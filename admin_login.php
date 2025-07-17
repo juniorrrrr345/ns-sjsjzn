@@ -2,17 +2,11 @@
 // Start session
 session_start();
 
-// Database credentials
-$host = 'localhost';
-$db   = 'ecommerce';
-$user = 'root'; // Change if your MySQL user is different
-$pass = '';
+// Include configuration file
+require_once 'config.php';
 
-// Connect to MySQL
-$conn = new mysqli($host, $user, $pass, $db);
-if ($conn->connect_error) {
-    die('Connection failed: ' . $conn->connect_error);
-}
+// Use the global connection from config.php
+$conn = getDbConnection();
 
 // Get POST data
 $username = isset($_POST['username']) ? trim($_POST['username']) : '';

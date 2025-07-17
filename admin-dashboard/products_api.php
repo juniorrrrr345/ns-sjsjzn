@@ -4,14 +4,14 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE');
 header('Access-Control-Allow-Headers: Content-Type');
 
-// Database credentials
-$host = 'localhost';
-$db   = 'ecommerce';
-$user = 'root';
-$pass = '';
+// Include configuration file
+require_once '../config.php';
 
 try {
-    $pdo = new PDO("mysql:host=$host;dbname=$db;charset=utf8mb4", $user, $pass);
+    // Use config from config.php
+    $config = $GLOBALS['db_config'];
+    $pdo = new PDO("mysql:host={$config['host']};dbname={$config['database']};charset=utf8mb4", 
+                   $config['username'], $config['password']);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch(PDOException $e) {
     http_response_code(500);
