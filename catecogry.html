@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <title>Document</title>
+    <style>
+      .category-section {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 2rem;
+        padding: 2rem 1rem;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      .category-card {
+        position: relative;
+        height: 0;
+        padding-bottom: 60%; /* 5:3 aspect ratio */
+        background-size: cover;
+        background-position: center;
+        border-radius: 1.2rem;
+        overflow: hidden;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.10), 0 1.5px 6px rgba(0,0,0,0.08);
+        transition: transform 0.2s, box-shadow 0.2s;
+        cursor: pointer;
+      }
+      .category-card:hover {
+        transform: translateY(-8px) scale(1.03);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.18), 0 3px 12px rgba(0,0,0,0.12);
+      }
+      .category-card .overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(0,0,0,0.45) 60%, rgba(0,0,0,0.15) 100%);
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: flex-end;
+        padding: 2rem 1.5rem;
+        border-radius: 1.2rem;
+        transition: background 0.2s;
+      }
+      .category-card .overlay h3 {
+        margin: 0 0 0.5rem 0;
+        font-size: 1.5rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.18);
+      }
+      .category-card .overlay p {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 400;
+        opacity: 0.92;
+        text-shadow: 0 1px 4px rgba(0,0,0,0.15);
+      }
+      @media (max-width: 600px) {
+        .category-section {
+          gap: 1rem;
+          padding: 1rem 0.5rem;
+        }
+        .category-card .overlay {
+          padding: 1.2rem 0.8rem;
+        }
+        .category-card .overlay h3 {
+          font-size: 1.1rem;
+        }
+        .category-card .overlay p {
+          font-size: 0.95rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="product-heading main-heading">
+      <h1 class="gradient-text">Explorez Nos Catégories</h1>
+    </div>
+    <section class="category-section" id="categorySection">
+      <!-- Category cards will be inserted here by JS -->
+    </section>
+
+    <footer>
+      <div class="footer-details">
+        <a href="/">
+          <div class="footer-elem">
+            <i class="ri-home-5-line"></i>
+            <p>Accueil</p>
+          </div>
+        </a>
+        <a href="./products.html">
+          <div class="footer-elem">
+            <i class="ri-shopping-bag-4-line"></i>
+            <p>Produits</p>
+          </div>
+        </a>
+        <a href="./catecogry.html">
+          <div class="footer-elem">
+            <i class="ri-book-shelf-line"></i>
+            <p>Catégories</p>
+          </div>
+        </a>
+        <a href="./contact.html">
+          <div class="footer-elem">
+            <i class="ri-mail-line"></i>
+            <p>Contact</p>
+          </div>
+        </a>
+      </div>
+    </footer>
+    <script>
+      // Map category names to images (customize as needed)
+      const categoryImages = {
+        'Extract': './images/ross.WEBP',
+        'Static-Sift': './images/static.jpg',
+        'Frozen-Sift': './images/frozen.jpg',
+        'Dry-Sift': './images/dry-hash.jpg',
+        'Fleur': './images/fleur.jpg',
+      };
+      function getCategoryImage(category) {
+        return categoryImages[category] || './images/static.jpg';
+      }
+      document.addEventListener('DOMContentLoaded', function() {
+        fetch('admin-dashboard/products_api.php?page=1&limit=1000')
+          .then(res => res.json())
+          .then(data => {
+            const products = data.products || [];
+            // Get unique categories
+            const categories = [...new Set(products.map(p => p.category).filter(Boolean))];
+            const section = document.getElementById('categorySection');
+            section.innerHTML = '';
+            if (!categories.length) {
+              section.innerHTML = '<p style="text-align:center">Aucune catégorie trouvée.</p>';
+              return;
+            }
+            categories.forEach(category => {
+              const card = document.createElement('div');
+              card.className = 'category-card';
+              card.style.backgroundImage = `url('${getCategoryImage(category)}')`;
+              card.innerHTML = `
+                <div class="overlay">
+                  <h3>${category}</h3>
+                  <p>Explore ${category}</p>
+                </div>
+              `;
+              section.appendChild(card);
+            });
+          });
+      });
+    </script>
+  </body>
+</html>

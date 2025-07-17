@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div class="product-container">
+      <div class="product-card">
+        <!-- Media Slider -->
+        <div class="media-slider" id="mediaSlider">
+          <!-- Media will be inserted here by JS -->
+        </div>
+        <!-- Content Section -->
+        <div class="content">
+          <h2 class="title" id="productTitle"></h2>
+          <div class="meta">
+            <span class="category" id="productCategory"></span>
+            <span class="country" id="productCountry"></span>
+          </div>
+          <p class="description" id="productDescription"></p>
+          <div class="price-options" id="priceOptions">
+            <!-- Price options will be inserted here by JS -->
+          </div>
+          <a href="/">
+            <button class="order-btn">
+              <i class="ri-whatsapp-line"></i> Commander Maintenant
+            </button></a
+          >
+        </div>
+      </div>
+    </div>
+    <script>
+      function getQueryParam(name) {
+        const url = new URL(window.location.href);
+        return url.searchParams.get(name);
+      }
+      document.addEventListener('DOMContentLoaded', function() {
+        const id = getQueryParam('id');
+        if (!id) return;
+        fetch(`admin-dashboard/products_api.php?id=${id}`)
+          .then(res => res.json())
+          .then(data => {
+            const product = data.products && data.products.length ? data.products[0] : null;
+            if (!product) return;
+            // Media
+            let mediaHtml = '';
+            if (product.media && product.media.match(/\.(jpg|jpeg|png|gif)$/i)) {
+              const imgSrc = product.media.startsWith('http') ? product.media : 'admin-dashboard/' + product.media.replace(/^\/?/, '');
+              mediaHtml = `<div class=\"slides\"><div class=\"slide slide-image\"><img src=\"${imgSrc}\" alt=\"Product\"></div></div>`;
+            } else if (product.media && product.media.match(/\.(mp4|webm|ogg)$/i)) {
+              const vidSrc = product.media.startsWith('http') ? product.media : 'admin-dashboard/' + product.media.replace(/^\/?/, '');
+              mediaHtml = `<div class=\"slides\"><div class=\"slide slide-video\"><video src=\"${vidSrc}\" controls style=\"max-width:100%;border-radius:10px\"></video></div></div>`;
+            } else {
+              mediaHtml = `<div class=\"slides\"><div class=\"slide slide-image\"><img src=\"./images/dry-hash.jpg\" alt=\"Product\"></div></div>`;
+            }
+            document.getElementById('mediaSlider').innerHTML = mediaHtml;
+            // Title
+            document.getElementById('productTitle').textContent = product.product_name || 'TIRAMISU';
+            // Category
+            document.getElementById('productCategory').textContent = 'category: ' + (product.category || 'Farm: DRYTECH x GOLDEN FARMS');
+            // Country
+            document.getElementById('productCountry').textContent = product.country || '🇫🇷 France';
+            // Description
+            document.getElementById('productDescription').textContent = product.description || 'PREMIUM DRYSIFT 90 – A refined cannabis concentrate offering rich flavors and smooth hits.';
+            // Price options
+            const priceOptions = document.getElementById('priceOptions');
+            priceOptions.innerHTML = '';
+            // Show only the product's actual weight and price
+            const price = product.price || '60';
+            const weight = product.weight || '5';
+            const btn = document.createElement('button');
+            btn.textContent = `${weight}G €${price}`;
+            priceOptions.appendChild(btn);
+          });
+      });
+    </script>
+  </body>
+</html>

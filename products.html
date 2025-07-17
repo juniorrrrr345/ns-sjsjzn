@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <title>Products</title>
+  </head>
+  <body>
+    <div class="product-heading main-heading">
+      <h1 class="gradient-text">Tous les Produits</h1>
+    </div>
+    <div class="search-wrapper">
+      <div class="search-bar">
+        <i class="ri-search-line"></i>
+        <input
+          type="text"
+          placeholder="Rechercher par nom, catégorie ou farm..."
+          id="searchInput"
+        />
+      </div>
+      <button class="filter-btn">
+        <i class="ri-filter-3-line"></i> Filtres
+      </button>
+    </div>
+
+    <div class="products" id="productsContainer">
+      <!-- Product cards will be inserted here by JS -->
+    </div>
+
+    <footer>
+      <div class="footer-details">
+        <a href="/">
+          <div class="footer-elem">
+            <i class="ri-home-5-line"></i>
+            <p>Accueil</p>
+          </div>
+        </a>
+        <a href="./products.html">
+          <div class="footer-elem">
+            <i class="ri-shopping-bag-4-line"></i>
+            <p>Produits</p>
+          </div>
+        </a>
+        <a href="./catecogry.html">
+          <div class="footer-elem">
+            <i class="ri-book-shelf-line"></i>
+            <p>Catégories</p>
+          </div>
+        </a>
+        <a href="./contact.html">
+          <div class="footer-elem">
+            <i class="ri-mail-line"></i>
+            <p>Contact</p>
+          </div>
+        </a>
+      </div>
+    </footer>
+    <script>
+      function renderProducts(products) {
+        const container = document.getElementById('productsContainer');
+        container.innerHTML = '';
+        if (!products.length) {
+          container.innerHTML = '<p style="text-align:center">Aucun produit trouvé.</p>';
+          return;
+        }
+        products.forEach(product => {
+          let imgSrc = './images/hModuTC.jpeg';
+          if (product.media && product.media !== '') {
+            imgSrc = product.media.startsWith('http') ? product.media : 'admin-dashboard/' + product.media.replace(/^\/?/, '');
+          }
+          const card = document.createElement('div');
+          card.className = 'p-card';
+          card.innerHTML = `
+            <a href="productcard.html?id=${product.id}" style="text-decoration:none;color:inherit;display:block;">
+              <div class="p-image">
+                <img src="${imgSrc}" alt="" />
+                <div class="tag">
+                  <i class="ri-price-tag-3-line"></i>
+                  <p>${product.country || 'STATIC MAROC 🇲🇦'}</p>
+                </div>
+              </div>
+              <div class="p-info">
+                <h3>${product.product_name || 'Z HASH'}</h3>
+                <div class="p-type">
+                  <i class="ri-home-5-line"></i>
+                  <h4>${product.category || 'MOUNTAINS GIANT'}</h4>
+                </div>
+                <h2>${product.price || '110'}€<span> / ${(product.weight || '5')}g</span></h2>
+              </div>
+            </a>
+          `;
+          card.style.height = 'auto';
+          container.appendChild(card);
+        });
+      }
+
+      function fetchAndRenderProducts(search = '') {
+        fetch('admin-dashboard/products_api.php?page=1&limit=100&search=' + encodeURIComponent(search))
+          .then(res => res.json())
+          .then(data => {
+            renderProducts(data.products || []);
+          });
+      }
+
+      document.addEventListener('DOMContentLoaded', function() {
+        fetchAndRenderProducts();
+        const searchInput = document.getElementById('searchInput');
+        let searchTimeout;
+        searchInput.addEventListener('input', function() {
+          clearTimeout(searchTimeout);
+          searchTimeout = setTimeout(() => {
+            fetchAndRenderProducts(searchInput.value);
+          }, 300);
+        });
+      });
+    </script>
+  </body>
+</html>
