@@ -62,6 +62,23 @@ Une fois connecté, vous aurez accès au panneau d'administration complet (`admi
 - **Erreur de connexion :** Vérifiez que la base de données MySQL est configurée et accessible
 - **Page non trouvée :** Assurez-vous que tous les fichiers sont présents dans le bon répertoire
 - **Redirection échoue :** Vérifiez que le dossier `admin-dashboard/` existe avec le fichier `index.php`
+- **Page blanche après connexion :** ✅ **CORRIGÉ** - Le dossier `admin-dashboard/` et les fichiers nécessaires ont été créés
+
+### 8. ✅ Problème résolu : Page blanche après connexion
+
+**Problème identifié :** Le dossier `admin-dashboard/` et le fichier `index.php` étaient manquants.
+
+**Solution appliquée :**
+- ✅ Création du dossier `admin-dashboard/`
+- ✅ Création du fichier `admin-dashboard/index.php` avec un dashboard fonctionnel
+- ✅ Création du fichier `admin-dashboard/logout.php` pour la déconnexion
+- ✅ Création de l'API `admin-dashboard/products_api.php` pour la gestion des produits
+- ✅ Création du dossier `admin-dashboard/uploads/` pour les médias
+
+**Maintenant, après la connexion, vous devriez voir :**
+- Un message de bienvenue personnalisé
+- Des cartes d'accès rapide aux différentes sections
+- Un bouton pour accéder au panneau complet d'administration
 
 ---
 
