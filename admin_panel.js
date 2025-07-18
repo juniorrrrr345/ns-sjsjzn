@@ -318,7 +318,7 @@ function showProductModal(data = {}) {
                     <button class="close-modal">&times;</button>
                 </div>
                 <div class="modal-body">
-                    <form class="product-form">
+                    <form class="product-form" enctype="multipart/form-data">
                         <div class="form-group">
                             <label for="product-name">Nom du Produit</label>
                             <input type="text" id="product-name" value="${data.name || ''}" required>
@@ -333,6 +333,10 @@ function showProductModal(data = {}) {
                             </select>
                         </div>
                         <div class="form-group">
+                            <label for="product-description">Description</label>
+                            <textarea id="product-description" rows="3" placeholder="Description du produit...">${data.description || ''}</textarea>
+                        </div>
+                        <div class="form-group">
                             <label for="product-price">Prix (€)</label>
                             <input type="number" id="product-price" value="${data.price ? data.price.replace(' €', '') : ''}" step="0.01" required>
                         </div>
@@ -341,8 +345,28 @@ function showProductModal(data = {}) {
                             <input type="number" id="product-stock" value="${data.stock || ''}" required>
                         </div>
                         <div class="form-group">
-                            <label for="product-image">Image</label>
+                            <label for="product-image">Image du Produit</label>
                             <input type="file" id="product-image" accept="image/*">
+                            <small class="form-hint">Formats acceptés: JPG, PNG, WEBP (max 5MB)</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="product-video">Vidéo du Produit (optionnel)</label>
+                            <input type="file" id="product-video" accept="video/*">
+                            <small class="form-hint">Formats acceptés: MP4, WEBM, MOV (max 50MB)</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="product-image-link">Lien Image (optionnel)</label>
+                            <input type="url" id="product-image-link" placeholder="https://exemple.com/image.jpg" value="${data.imageLink || ''}">
+                            <small class="form-hint">Lien alternatif vers une image hébergée en ligne</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="product-video-link">Lien Vidéo (optionnel)</label>
+                            <input type="url" id="product-video-link" placeholder="https://exemple.com/video.mp4" value="${data.videoLink || ''}">
+                            <small class="form-hint">Lien alternatif vers une vidéo hébergée en ligne</small>
+                        </div>
+                        <div class="media-preview" id="mediaPreview" style="display: none;">
+                            <h4>Aperçu des médias:</h4>
+                            <div class="preview-container"></div>
                         </div>
                     </form>
                 </div>
@@ -356,6 +380,9 @@ function showProductModal(data = {}) {
     
     // Add modal to page
     document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // Setup file preview handlers
+    setupFilePreviewHandlers();
     
     // Setup modal handlers
     setupModalHandlers();
