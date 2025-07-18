@@ -22,6 +22,9 @@ function initAdminPanel() {
     if (dashboardNav) {
         dashboardNav.classList.add('active');
     }
+    
+    // Précharger les données des produits pour éviter un tableau vide
+    loadProductsData();
 }
 
 // Update current date display
@@ -214,6 +217,15 @@ function loadDashboardData() {
 function loadProductsData() {
     console.log('Chargement des données des produits...');
     
+    // Vérifier que l'élément tbody existe
+    const tbody = document.querySelector('#products .products-table table tbody');
+    if (!tbody) {
+        console.error('Élément tbody non trouvé pour les produits');
+        return;
+    }
+    
+    console.log('Élément tbody trouvé, chargement des produits...');
+    
     // Simuler le chargement de données depuis une API/base de données
     // En attendant l'implémentation backend, utilisons des données statiques
     const products = [
@@ -256,37 +268,42 @@ function loadProductsData() {
     ];
     
     // Générer le HTML pour les produits
-    const tbody = document.querySelector('#products .products-table table tbody');
-    if (tbody) {
-        tbody.innerHTML = '';
-        
-        products.forEach(product => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>
-                    <img src="${product.image}" 
-                         alt="${product.name}" 
-                         class="product-thumb"
-                         onerror="this.src='./logo.png'; this.classList.add('fallback-image');"
-                         onload="this.classList.add('image-loaded');" />
-                </td>
-                <td>${product.name}</td>
-                <td>${product.category}</td>
-                <td>${product.price}</td>
-                <td>${product.stock}</td>
-                <td><span class="status ${product.status}">${getStatusText(product.status)}</span></td>
-                <td class="actions">
-                    <button class="btn-icon edit-btn" onclick="editProduct(${product.id})">
-                        <i class="ri-edit-line"></i>
-                    </button>
-                    <button class="btn-icon delete-btn" onclick="deleteProduct(${product.id})">
-                        <i class="ri-delete-bin-line"></i>
-                    </button>
-                </td>
-            `;
-            tbody.appendChild(row);
-        });
-    }
+    tbody.innerHTML = '';
+    
+    products.forEach((product, index) => {
+        console.log(`Ajout du produit ${index + 1}: ${product.name}`);
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>
+                <img src="${product.image}" 
+                     alt="${product.name}" 
+                     class="product-thumb"
+                     onerror="console.warn('Erreur chargement image:', this.src); this.src='./logo.png'; this.classList.add('fallback-image');"
+                     onload="console.log('Image chargée:', this.src); this.classList.add('image-loaded');" />
+            </td>
+            <td>${product.name}</td>
+            <td>${product.category}</td>
+            <td>${product.price}</td>
+            <td>${product.stock}</td>
+            <td><span class="status ${product.status}">${getStatusText(product.status)}</span></td>
+            <td class="actions">
+                <button class="btn-icon edit-btn" onclick="editProduct(${product.id})">
+                    <i class="ri-edit-line"></i>
+                </button>
+                <button class="btn-icon delete-btn" onclick="deleteProduct(${product.id})">
+                    <i class="ri-delete-bin-line"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+    
+    console.log(`${products.length} produits chargés dans le tableau`);
+    
+    // Attendre un peu puis précharger les images
+    setTimeout(() => {
+        preloadProductImages();
+    }, 100);
 }
 
 function loadOrdersData() {
