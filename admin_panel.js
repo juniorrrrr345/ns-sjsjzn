@@ -410,9 +410,127 @@ function closeModal() {
     }
 }
 
+function setupFilePreviewHandlers() {
+    const imageInput = document.getElementById('product-image');
+    const videoInput = document.getElementById('product-video');
+    const imageLinkInput = document.getElementById('product-image-link');
+    const videoLinkInput = document.getElementById('product-video-link');
+    const previewContainer = document.getElementById('mediaPreview');
+    
+    // Image file preview
+    if (imageInput) {
+        imageInput.addEventListener('change', function(e) {
+            handleFilePreview(e.target, 'image');
+        });
+    }
+    
+    // Video file preview
+    if (videoInput) {
+        videoInput.addEventListener('change', function(e) {
+            handleFilePreview(e.target, 'video');
+        });
+    }
+    
+    // Image link preview
+    if (imageLinkInput) {
+        imageLinkInput.addEventListener('input', function(e) {
+            handleLinkPreview(e.target.value, 'image');
+        });
+    }
+    
+    // Video link preview
+    if (videoLinkInput) {
+        videoLinkInput.addEventListener('input', function(e) {
+            handleLinkPreview(e.target.value, 'video');
+        });
+    }
+}
+
+function handleFilePreview(input, type) {
+    const file = input.files[0];
+    if (!file) return;
+    
+    // Check file size
+    const maxSize = type === 'video' ? 50 * 1024 * 1024 : 5 * 1024 * 1024; // 50MB for video, 5MB for image
+    if (file.size > maxSize) {
+        showNotification(`Fichier trop volumineux. Taille maximum: ${type === 'video' ? '50MB' : '5MB'}`, 'error');
+        input.value = '';
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        updatePreview(e.target.result, type, file.name);
+    };
+    reader.readAsDataURL(file);
+}
+
+function handleLinkPreview(url, type) {
+    if (!url) {
+        updatePreview(null, type);
+        return;
+    }
+    
+    // Validate URL format
+    try {
+        new URL(url);
+        updatePreview(url, type);
+    } catch {
+        // Invalid URL, clear preview
+        updatePreview(null, type);
+    }
+}
+
+function updatePreview(src, type, fileName = '') {
+    const previewContainer = document.getElementById('mediaPreview');
+    const previewContent = previewContainer.querySelector('.preview-container');
+    
+    if (!src) {
+        // Hide preview if no source
+        if (previewContent.children.length === 0) {
+            previewContainer.style.display = 'none';
+        }
+        return;
+    }
+    
+    // Show preview container
+    previewContainer.style.display = 'block';
+    
+    // Remove existing preview of same type
+    const existingPreview = previewContent.querySelector(`[data-type="${type}"]`);
+    if (existingPreview) {
+        existingPreview.remove();
+    }
+    
+    // Create preview element
+    const previewWrapper = document.createElement('div');
+    previewWrapper.className = 'media-preview-item';
+    previewWrapper.setAttribute('data-type', type);
+    
+    let mediaElement;
+    if (type === 'image') {
+        mediaElement = document.createElement('img');
+        mediaElement.src = src;
+        mediaElement.alt = fileName || 'Preview';
+        mediaElement.style.cssText = 'max-width: 200px; max-height: 150px; border-radius: 8px; object-fit: cover;';
+    } else if (type === 'video') {
+        mediaElement = document.createElement('video');
+        mediaElement.src = src;
+        mediaElement.controls = true;
+        mediaElement.style.cssText = 'max-width: 200px; max-height: 150px; border-radius: 8px;';
+    }
+    
+    const labelElement = document.createElement('div');
+    labelElement.textContent = `${type === 'image' ? 'Image' : 'Vidéo'}: ${fileName || 'Lien externe'}`;
+    labelElement.style.cssText = 'font-size: 0.9rem; color: #ed6eba; margin-bottom: 0.5rem;';
+    
+    previewWrapper.appendChild(labelElement);
+    previewWrapper.appendChild(mediaElement);
+    previewContent.appendChild(previewWrapper);
+}
+
 function saveProduct() {
     const form = document.querySelector('.product-form');
-    const formData = new FormData(form);
     
     // Validate form
     if (!form.checkValidity()) {
@@ -420,23 +538,114 @@ function saveProduct() {
         return;
     }
     
+    // Create FormData for file uploads
+    const formData = new FormData();
+    
     // Get form values
     const productData = {
         name: document.getElementById('product-name').value,
         category: document.getElementById('product-category').value,
+        description: document.getElementById('product-description').value,
         price: document.getElementById('product-price').value,
-        stock: document.getElementById('product-stock').value
+        stock: document.getElementById('product-stock').value,
+        imageLink: document.getElementById('product-image-link').value,
+        videoLink: document.getElementById('product-video-link').value
     };
     
-    // You can add AJAX call here to save to server
-    console.log('Saving product:', productData);
+    // Add text data to FormData
+    Object.keys(productData).forEach(key => {
+        formData.append(key, productData[key]);
+    });
     
-    // Close modal and show success message
-    closeModal();
-    showNotification('Produit sauvegardé avec succès', 'success');
+    // Add files to FormData
+    const imageFile = document.getElementById('product-image').files[0];
+    const videoFile = document.getElementById('product-video').files[0];
     
-    // Refresh products table
-    loadProductsData();
+    if (imageFile) {
+        formData.append('productImage', imageFile);
+    }
+    
+    if (videoFile) {
+        formData.append('productVideo', videoFile);
+    }
+    
+    // Show loading state
+    const saveBtn = document.querySelector('.save-btn');
+    const originalText = saveBtn.textContent;
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<i class="ri-loader-4-line"></i> Sauvegarde...';
+    
+    // Ajouter l'action pour l'API
+    formData.append('action', 'upload_product');
+    
+    // Envoyer à l'API réelle
+    fetch('upload_config.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (!response.ok) {
+            if (response.status === 413) {
+                throw new Error('Fichier trop volumineux. Veuillez réduire la taille du fichier ou utiliser un lien externe.');
+            }
+            throw new Error('Erreur lors de la sauvegarde');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            // Reset button
+            saveBtn.disabled = false;
+            saveBtn.textContent = originalText;
+            
+            // Close modal and show success message
+            closeModal();
+            showNotification(data.message, 'success');
+            
+            // Refresh products table
+            loadProductsData();
+        } else {
+            throw new Error(data.message);
+        }
+    })
+    .catch(error => {
+        // Reset button
+        saveBtn.disabled = false;
+        saveBtn.textContent = originalText;
+        
+        showNotification(error.message, 'error');
+        console.error('Erreur:', error);
+    });
+    
+    // Example of how to send to server with proper handling of large files:
+    /*
+    fetch('/api/products', {
+        method: 'POST',
+        body: formData,
+        // Don't set Content-Type header, let browser set it with boundary for multipart/form-data
+    })
+    .then(response => {
+        if (!response.ok) {
+            if (response.status === 413) {
+                throw new Error('Fichier trop volumineux. Veuillez réduire la taille du fichier.');
+            }
+            throw new Error('Erreur lors de la sauvegarde');
+        }
+        return response.json();
+    })
+    .then(data => {
+        saveBtn.disabled = false;
+        saveBtn.textContent = originalText;
+        closeModal();
+        showNotification('Produit sauvegardé avec succès', 'success');
+        loadProductsData();
+    })
+    .catch(error => {
+        saveBtn.disabled = false;
+        saveBtn.textContent = originalText;
+        showNotification(error.message, 'error');
+    });
+    */
 }
 
 // Order management functions
