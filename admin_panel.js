@@ -93,6 +93,8 @@ function showSection(sectionId) {
                 break;
             case 'products':
                 loadProductsData();
+                // Précharger les images après le chargement des données
+                setTimeout(preloadProductImages, 100);
                 break;
             case 'orders':
                 loadOrdersData();
@@ -143,6 +145,14 @@ function setupSearchAndFilters() {
             }
         });
     });
+    
+    // Configuration spéciale pour le bouton d'ajout de produit
+    const addProductBtn = document.querySelector('.add-product-btn');
+    if (addProductBtn) {
+        addProductBtn.addEventListener('click', function() {
+            openProductModal();
+        });
+    }
 }
 
 // Setup table interactions
@@ -203,7 +213,80 @@ function loadDashboardData() {
 
 function loadProductsData() {
     console.log('Chargement des données des produits...');
-    // Load products data
+    
+    // Simuler le chargement de données depuis une API/base de données
+    // En attendant l'implémentation backend, utilisons des données statiques
+    const products = [
+        {
+            id: 1,
+            name: "Fleur Premium OG",
+            category: "Fleurs",
+            price: "25 €",
+            stock: 12,
+            status: "active",
+            image: "./fleur.jpg"
+        },
+        {
+            id: 2,
+            name: "Collection Static",
+            category: "Résine",
+            price: "45 €",
+            stock: 8,
+            status: "active",
+            image: "./static.jpg"
+        },
+        {
+            id: 3,
+            name: "Hash Premium",
+            category: "Concentrés",
+            price: "60 €",
+            stock: 0,
+            status: "out-of-stock",
+            image: "./dry-hash.jpg"
+        },
+        {
+            id: 4,
+            name: "Fleur Frozen",
+            category: "Fleurs",
+            price: "30 €",
+            stock: 15,
+            status: "active",
+            image: "./frozen.jpg"
+        }
+    ];
+    
+    // Générer le HTML pour les produits
+    const tbody = document.querySelector('#products .products-table table tbody');
+    if (tbody) {
+        tbody.innerHTML = '';
+        
+        products.forEach(product => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>
+                    <img src="${product.image}" 
+                         alt="${product.name}" 
+                         class="product-thumb"
+                         onerror="this.src='./logo.png'; this.classList.add('fallback-image');"
+                         onload="this.classList.add('image-loaded');" />
+                </td>
+                <td>${product.name}</td>
+                <td>${product.category}</td>
+                <td>${product.price}</td>
+                <td>${product.stock}</td>
+                <td><span class="status ${product.status}">${getStatusText(product.status)}</span></td>
+                <td class="actions">
+                    <button class="btn-icon edit-btn" onclick="editProduct(${product.id})">
+                        <i class="ri-edit-line"></i>
+                    </button>
+                    <button class="btn-icon delete-btn" onclick="deleteProduct(${product.id})">
+                        <i class="ri-delete-bin-line"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
 }
 
 function loadOrdersData() {
@@ -231,75 +314,29 @@ function loadSettingsData() {
     // Load settings data
 }
 
-// Filter functions
-function filterProducts(searchTerm = '') {
-    const table = document.querySelector('#products .products-table table tbody');
-    const rows = table.querySelectorAll('tr');
-    const categoryFilter = document.querySelector('#products .filter-select').value;
-    const statusFilter = document.querySelectorAll('#products .filter-select')[1].value;
-    
-    rows.forEach(row => {
-        const productName = row.cells[1].textContent.toLowerCase();
-        const category = row.cells[2].textContent.toLowerCase();
-        const status = row.querySelector('.status').className;
-        
-        const matchesSearch = productName.includes(searchTerm.toLowerCase());
-        const matchesCategory = !categoryFilter || category.includes(categoryFilter);
-        const matchesStatus = !statusFilter || status.includes(statusFilter);
-        
-        if (matchesSearch && matchesCategory && matchesStatus) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
-    });
+// Fonction helper pour le texte du statut
+function getStatusText(status) {
+    switch(status) {
+        case 'active': return 'Actif';
+        case 'inactive': return 'Inactif';
+        case 'out-of-stock': return 'Rupture';
+        default: return status;
+    }
 }
 
-function filterOrders(searchTerm = '') {
-    const table = document.querySelector('#orders .orders-table table tbody');
-    const rows = table.querySelectorAll('tr');
-    const statusFilter = document.querySelector('#orders .filter-select').value;
-    
-    rows.forEach(row => {
-        const orderId = row.cells[0].textContent.toLowerCase();
-        const customerName = row.cells[1].textContent.toLowerCase();
-        const status = row.querySelector('.status').className;
-        
-        const matchesSearch = orderId.includes(searchTerm.toLowerCase()) || 
-                            customerName.includes(searchTerm.toLowerCase());
-        const matchesStatus = !statusFilter || status.includes(statusFilter);
-        
-        if (matchesSearch && matchesStatus) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
-    });
+// Fonctions pour gérer les actions des produits
+function editProduct(productId) {
+    console.log('Éditer le produit:', productId);
+    // Ouvrir le modal d'édition
+    openProductModal(productId);
 }
 
-// Product management functions
-function editProduct(row) {
-    const productName = row.cells[1].textContent;
-    const category = row.cells[2].textContent;
-    const price = row.cells[3].textContent;
-    const stock = row.cells[4].textContent;
-    
-    // Show edit modal with product data
-    showProductModal({
-        name: productName,
-        category: category,
-        price: price,
-        stock: stock,
-        isEdit: true
-    });
-}
-
-function deleteProduct(row) {
-    // Remove row from table
-    row.remove();
-    
-    // You can add AJAX call here to delete from server
-    showNotification('Produit supprimé avec succès', 'success');
+function deleteProduct(productId) {
+    if (confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) {
+        console.log('Supprimer le produit:', productId);
+        // Implémenter la suppression
+        loadProductsData(); // Recharger la liste
+    }
 }
 
 function showAddProductModal() {
@@ -503,4 +540,91 @@ if (window.innerWidth <= 768) {
     menuButton.innerHTML = '<i class="ri-menu-line"></i>';
     menuButton.addEventListener('click', toggleSidebar);
     header.appendChild(menuButton);
+}
+
+// Filter functions
+function filterProducts(searchTerm = '') {
+    const table = document.querySelector('#products .products-table table tbody');
+    const rows = table.querySelectorAll('tr');
+    const categoryFilter = document.querySelector('#products .filter-select').value;
+    const statusFilter = document.querySelectorAll('#products .filter-select')[1].value;
+    
+    rows.forEach(row => {
+        const productName = row.cells[1].textContent.toLowerCase();
+        const category = row.cells[2].textContent.toLowerCase();
+        const status = row.querySelector('.status').className;
+        
+        const matchesSearch = productName.includes(searchTerm.toLowerCase());
+        const matchesCategory = !categoryFilter || category.includes(categoryFilter);
+        const matchesStatus = !statusFilter || status.includes(statusFilter);
+        
+        if (matchesSearch && matchesCategory && matchesStatus) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+function filterOrders(searchTerm = '') {
+    const table = document.querySelector('#orders .orders-table table tbody');
+    if (!table) return;
+    
+    const rows = table.querySelectorAll('tr');
+    const statusFilter = document.querySelector('#orders .filter-select');
+    
+    rows.forEach(row => {
+        const orderId = row.cells[0].textContent.toLowerCase();
+        const customerName = row.cells[1].textContent.toLowerCase();
+        const status = row.querySelector('.status') ? row.querySelector('.status').className : '';
+        
+        const matchesSearch = orderId.includes(searchTerm.toLowerCase()) || 
+                            customerName.includes(searchTerm.toLowerCase());
+        const matchesStatus = !statusFilter || !statusFilter.value || status.includes(statusFilter.value);
+        
+        if (matchesSearch && matchesStatus) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+// Fonction pour précharger les images et gérer les erreurs
+function preloadProductImages() {
+    const images = document.querySelectorAll('.product-thumb');
+    images.forEach(img => {
+        // Ajouter des événements de gestion d'erreur
+        img.addEventListener('error', function() {
+            this.src = './logo.png';
+            this.classList.add('fallback-image');
+            console.warn('Image non trouvée:', this.getAttribute('data-original-src') || this.src);
+        });
+        
+        img.addEventListener('load', function() {
+            this.classList.add('image-loaded');
+        });
+        
+        // Stocker l'URL originale pour le débogage
+        img.setAttribute('data-original-src', img.src);
+    });
+}
+
+// Améliorer la fonction openProductModal
+function openProductModal(productId = null) {
+    // Ici vous pouvez récupérer les données du produit par son ID
+    const productData = productId ? getProductById(productId) : {};
+    showProductModal(productData);
+}
+
+// Fonction helper pour récupérer un produit par ID
+function getProductById(id) {
+    // Simuler la récupération depuis la base de données
+    const products = [
+        { id: 1, name: "Fleur Premium OG", category: "Fleurs", price: "25", stock: 12, status: "active", image: "./fleur.jpg" },
+        { id: 2, name: "Collection Static", category: "Résine", price: "45", stock: 8, status: "active", image: "./static.jpg" },
+        { id: 3, name: "Hash Premium", category: "Concentrés", price: "60", stock: 0, status: "out-of-stock", image: "./dry-hash.jpg" },
+        { id: 4, name: "Fleur Frozen", category: "Fleurs", price: "30", stock: 15, status: "active", image: "./frozen.jpg" }
+    ];
+    return products.find(p => p.id === id) || {};
 }
